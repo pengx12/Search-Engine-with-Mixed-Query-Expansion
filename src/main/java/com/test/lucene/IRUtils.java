@@ -25,10 +25,10 @@ import org.apache.lucene.search.similarities.LMDirichletSimilarity;
 import org.apache.lucene.search.similarities.MultiSimilarity;
 import org.apache.lucene.search.similarities.NormalizationH1;
 import org.apache.lucene.search.similarities.DFRSimilarity;
-
 import java.util.ArrayList;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.jsoup.Jsoup;
 public class IRUtils {
@@ -40,6 +40,8 @@ public class IRUtils {
     public final static String absPathFB = String.format("%s/Docs/fbis",currentRelativePath);
     public final static String absPathLA = String.format("%s/Docs/latimes",currentRelativePath);
 	public final static String absPathFT = String.format("%s/Docs/ft",currentRelativePath);
+    public final static String absPathpro = String.format("%s/prolog/wn_s.pl",currentRelativePath);
+    public final static String absPathstop = String.format("%s/Docs/stopWords",currentRelativePath);
 
 
     public static ArrayList<Document> loadDocs(){
@@ -94,9 +96,9 @@ public class IRUtils {
 
     private static Document addDoc(String docno, String text, String title) {
         Document doc = new Document();
-        doc.add(new TextField("docno", docno, Field.Store.YES));
-        doc.add(new TextField("text", text, Field.Store.YES));
-        doc.add(new TextField("title", title, Field.Store.YES));
+        doc.add(new StringField("docno", docno, Field.Store.YES));
+        doc.add(new TextField("text", text, Field.Store.NO));
+        doc.add(new TextField("title", title, Field.Store.NO));
         // fedRegisterDocList.add(doc);
         return doc;
     }
@@ -117,6 +119,7 @@ public class IRUtils {
             String title=document.select("title").text();
             String num=document.select("num").text();
             String desc=document.select("desc").text();
+            desc=desc.substring(0, desc.indexOf("Narrative"));
             String narr=document.select("narr").text();
             num=num.substring(8,11);
             // System.out.println(num);

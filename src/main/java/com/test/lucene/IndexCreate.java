@@ -3,6 +3,7 @@ package com.test.lucene;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
@@ -71,7 +73,11 @@ public class IndexCreate {
             directory = FSDirectory.open(Paths.get("index"));
             indexWriter = new IndexWriter(directory, indexWriterConfig);
             FRDoc =IRUtils.loadFedRegisterDocs(path,id,title,text);
-            indexWriter.addDocuments(FRDoc);
+            for (int i=0;i<FRDoc.size();i++){
+                //System.out.println(FRDoc.get(i).get("docno"));
+                indexWriter.updateDocument(new Term("docno",FRDoc.get(i).get("docno")), FRDoc.get(i));
+            }
+            //indexWriter.addDocuments(FRDoc);
             indexWriter.commit();
             // FRDoc=IRUtils.loadFedRegisterDocs(IRUtils.absPathFT,"DOCNO","HEADLINE","TEXT");
             // indexWriter.addDocuments(FRDoc);

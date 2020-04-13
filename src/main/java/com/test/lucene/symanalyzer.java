@@ -35,9 +35,10 @@ import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.analysis.synonym.WordnetSynonymParser;
 import org.apache.lucene.util.CharsRef;
 
-public class MyAnalyzer extends Analyzer {
+public class symanalyzer extends Analyzer {
+
 	private List<String> stopWords;
-	public MyAnalyzer() {
+    public symanalyzer() {
 		// super(stopWords);
 	}
 
@@ -49,30 +50,28 @@ public class MyAnalyzer extends Analyzer {
 				WordDelimiterGraphFilter.SPLIT_ON_NUMERICS | WordDelimiterGraphFilter.GENERATE_WORD_PARTS
 						| WordDelimiterGraphFilter.GENERATE_NUMBER_PARTS | WordDelimiterGraphFilter.PRESERVE_ORIGINAL,
 				null));
-		// try {
-		// 	WordnetSynonymParser parser = new WordnetSynonymParser(true, false, new StandardAnalyzer(CharArraySet.EMPTY_SET));
-		// 	FileReader wordnetReader = new FileReader(IRUtils.absPathpro);
-		// 	parser.parse(wordnetReader);
-		// 	SynonymMap synonymMap = parser.build();
-		// 	// filter= new SynonymFilter(filter, synonymMap, false);        
-		// 	filter = synonymMap.fst == null ? filter : new FlattenGraphFilter(new SynonymGraphFilter(filter, synonymMap, true));
-		// 	} catch (IOException | ParseException e) {
-		// 		// TODO Auto-generated catch block
-		// 		e.printStackTrace();
-		// }
+		try {
+			WordnetSynonymParser parser = new WordnetSynonymParser(true, false, new StandardAnalyzer(CharArraySet.EMPTY_SET));
+			FileReader wordnetReader = new FileReader(IRUtils.absPathpro);
+			parser.parse(wordnetReader);
+			SynonymMap synonymMap = parser.build();
+			// filter= new SynonymFilter(filter, synonymMap, false);        
+			filter = synonymMap.fst == null ? filter : new FlattenGraphFilter(new SynonymGraphFilter(filter, synonymMap, true));
+			} catch (IOException | ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+		}
 		filter = new StandardFilter(filter);
 		filter = new TrimFilter(filter);
 		filter = new PorterStemFilter(filter);
         filter = new EnglishPossessiveFilter(filter);
-        //filter = new StopFilter(filter, stopwords);
+        filter = new StopFilter(filter, getListOfStopWords());
         filter = new KStemFilter(filter);
 		//return new TokenStreamComponents(tokenizer, filter);
-        filter = new StopFilter(filter, getListOfStopWords());
 		filter = new StopFilter(filter, StandardAnalyzer.ENGLISH_STOP_WORDS_SET);
 		filter = new SnowballFilter(filter, "English");
 		return new TokenStreamComponents(tokenizer, filter);
 	}
-
 	private CharArraySet getListOfStopWords() {
 		if (stopWords == null) {
 			stopWords = new ArrayList<>();

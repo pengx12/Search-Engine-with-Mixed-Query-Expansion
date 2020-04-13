@@ -50,6 +50,11 @@
         <artifactId>lucene-queries</artifactId>
         <version>7.2.1</version>
     </dependency>
+    	<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-wordnet</artifactId>
+			<version>3.3.0</version>
+		</dependency>
     <dependency>
   <!-- jsoup HTML parser library @ http://jsoup.org/ -->
   <groupId>org.jsoup</groupId>

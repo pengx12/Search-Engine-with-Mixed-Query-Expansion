@@ -7,11 +7,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
@@ -22,9 +25,11 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+// import org.apache.lucene.search.DiversifiedTopDocsCollector;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BoostQuery;
@@ -56,7 +61,7 @@ public class IndexSearch {
     public static void main(final String[] args) {
         // 索引存放的位置
         Directory directory = null;
-        AnalAndSim anals=new AnalAndSim();
+        AnalAndSim anals = new AnalAndSim();
         // new IndexCreate().writeIndex();
         try {
             // 索引硬盘存储路径
@@ -86,32 +91,81 @@ public class IndexSearch {
         int counter = 1;
         final ArrayList<QueryResult> allResults = new ArrayList<QueryResult>();
         ArrayList<ArrayList<String>> qryarr;
+
+        QueryParser symparser = new MultiFieldQueryParser(QUREY_FIELDS, new symanalyzer(), bstparameter);
         try {
             qryarr = IRUtils.getArrQueries();
-            for (int j=0;j<qryarr.size();j++){
-                Query titlequery = parser.parse(QueryParser.escape(qryarr.get(j).get(0)));
-                Query descquery = parser.parse(QueryParser.escape(qryarr.get(j).get(1)));
-                Query relquery=null;
-                if (qryarr.get(j).get(2)!=null && qryarr.get(j).get(2).length()!=0)
-                {
-                    relquery = parser.parse(QueryParser.escape(qryarr.get(j).get(2)));
+            for (int j = 0; j < qryarr.size(); j++) {
+                BooleanQuery.Builder query = getquery(parser, qryarr, j);
+                TopDocs results = searcher.search(query.build(), 1000);
+                ScoreDoc[] hits = results.scoreDocs;
+                final int num = (int) Math.min(results.totalHits, 1000);
+                // Set idset=new HashSet();
+                for (int i = 0; i < num; i++) {
+                    final int indexDocNo = hits[i].doc;
+                    final Document value = directoryReader.document(indexDocNo);
+                    // final String content = value.get(QUREY_FIELDS[0]);
+                    final String content = value.get("docno");
+                    // idset.add(content);
+                    final QueryResult qrs = new QueryResult(counter, qryarr.get(j).get(5), content, i + 1,
+                            hits[i].score);
+                    allResults.add(qrs);
                 }
-                Query negquery=null;
-                if (qryarr.get(j).get(3)!=null && qryarr.get(j).get(3).length()!=0)
-                {
-                    negquery = parser.parse(QueryParser.escape(qryarr.get(j).get(3)));
-                }
-                Query mustquery=null;
-                if (qryarr.get(j).get(4)!=null && qryarr.get(j).get(4).length()!=0)
-                {
-                    negquery = parser.parse(QueryParser.escape(qryarr.get(j).get(4)));
+                // float nscore = hits[num - 1].score - 1;
+                // BooleanQuery.Builder symquery = getquery1(symparser, qryarr, j);
+                // results = searcher.search(symquery.build(), 1000);
+                // hits = results.scoreDocs;
+                // int cnt=0;
+                // for (int i = 0; i < num; i++) {
+                //     final int indexDocNo = hits[i].doc;
+                //     final Document value = directoryReader.document(indexDocNo);
+                //     final String content = value.get("docno");
+                //     if (idset.contains(content))
+                //     {
+                //         System.out.println(i);
+                //         continue;
+                //     }
+                //     final QueryResult qrs = new QueryResult(counter, qryarr.get(j).get(5), content, i + 951,
+                //     nscore-i);
+                //     allResults.add(qrs);
+                //     cnt++;
+                //     if (cnt==50){
+                //         break;
+                //     }
+                // }
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return allResults;
+    }
+
+    private static BooleanQuery.Builder getquery(QueryParserBase parser, ArrayList<ArrayList<String>> qryarr, int j)
+            throws ParseException {
+        Query titlequery = parser.parse(QueryParser.escape(qryarr.get(j).get(0)));
+        Query descquery = parser.parse(QueryParser.escape(qryarr.get(j).get(1)));
+        // System.out.println(titlequery.toString());
+        // System.out.println(descquery.toString());
+        Query relquery = null;
+        //titlequery.clauses;
+        if (qryarr.get(j).get(2) != null && qryarr.get(j).get(2).length() != 0) {
+            relquery = parser.parse(QueryParser.escape(qryarr.get(j).get(2)));
+        }
+        Query negquery = null;
+        if (qryarr.get(j).get(3) != null && qryarr.get(j).get(3).length() != 0) {
+            negquery = parser.parse(QueryParser.escape(qryarr.get(j).get(3)));
+        }
+        Query mustquery = null;
+        if (qryarr.get(j).get(4) != null && qryarr.get(j).get(4).length() != 0) {
+            mustquery = parser.parse(QueryParser.escape(qryarr.get(j).get(4)));
                 }
                 BooleanQuery.Builder query = new BooleanQuery.Builder();
-                query.add(new BoostQuery(titlequery, 7f), BooleanClause.Occur.SHOULD);
-                query.add(new BoostQuery(descquery, 7f), BooleanClause.Occur.SHOULD);
+                query.add(new BoostQuery(titlequery, 15f), BooleanClause.Occur.SHOULD);
+                query.add(new BoostQuery(descquery, 5f), BooleanClause.Occur.SHOULD);
                 if (relquery!=null)
                 {
-                    query.add(new BoostQuery(relquery, 10f), BooleanClause.Occur.SHOULD);
+                    query.add(new BoostQuery(relquery, 5f), BooleanClause.Occur.SHOULD);
                 }
                 // if (negquery!=null)
                 // {
@@ -119,25 +173,26 @@ public class IndexSearch {
                 // }
                 if (mustquery!=null)
                 {
-                    query.add(new BoostQuery(mustquery, 25f), BooleanClause.Occur.SHOULD);
+                    query.add(new BoostQuery(mustquery, 12f), BooleanClause.Occur.SHOULD);
                 }
-                final TopDocs results = searcher.search(query.build(), 1000);
-                final ScoreDoc[] hits = results.scoreDocs;
 
-                final int num = (int) Math.min(results.totalHits, 1000);
-                for (int i = 0; i < num; i++) {
-                    final int indexDocNo = hits[i].doc;
-                    final Document value = directoryReader.document(indexDocNo);
-                    //final String content = value.get(QUREY_FIELDS[0]);
-                    final String content = value.get("docno");
-                    final QueryResult qrs = new QueryResult(counter,qryarr.get(j).get(5), content, i+1, hits[i].score);
-                    allResults.add(qrs);
-                }
-            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        return allResults;
+                // DiversifiedTopDocsCollector collector = 
+                // new DiversifiedTopDocsCollector(10, maxHitsPerKey) {
+                //     @Override
+                //     protected NumericDocValues getKeys(LeafReaderContext leafReaderContext) {
+                //     try {
+                //         return leafReaderContext.reader().getNumericDocValues("pageId");
+                //     } catch (IOException e) {
+                //         throw new RuntimeException(e);
+                //     }
+                //     }
+                //     };
+
+                //     searcher.search(query.build(), 
+                //                         collector);
+                //     TopDocs topDocs = collector.topDocs();
+
+                // Filter filter = new DuplicateFilter("duplicate");
+        return query;
     }
 }
