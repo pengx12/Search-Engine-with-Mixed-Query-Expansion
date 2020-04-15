@@ -38,6 +38,8 @@ import org.apache.lucene.util.CharsRef;
 public class symanalyzer extends Analyzer {
 
 	private List<String> stopWords;
+
+	private IRUtils irutils=new IRUtils();
     public symanalyzer() {
 		// super(stopWords);
 	}
@@ -61,6 +63,8 @@ public class symanalyzer extends Analyzer {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 		}
+
+		// filter = new FlattenGraphFilter(new SynonymGraphFilter(filter, createSynonymMap(), true));
 		filter = new StandardFilter(filter);
 		filter = new TrimFilter(filter);
 		filter = new PorterStemFilter(filter);
@@ -72,6 +76,7 @@ public class symanalyzer extends Analyzer {
 		filter = new SnowballFilter(filter, "English");
 		return new TokenStreamComponents(tokenizer, filter);
 	}
+
 	private CharArraySet getListOfStopWords() {
 		if (stopWords == null) {
 			stopWords = new ArrayList<>();

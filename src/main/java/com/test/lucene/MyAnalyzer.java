@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,27 +11,17 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.LowerCaseFilter;
 import org.apache.lucene.analysis.StopFilter;
-import org.apache.lucene.analysis.StopwordAnalyzerBase;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.FlattenGraphFilter;
-import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilter;
 import org.apache.lucene.analysis.en.KStemFilter;
 import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.miscellaneous.TrimFilter;
 import org.apache.lucene.analysis.miscellaneous.WordDelimiterGraphFilter;
-import org.apache.lucene.analysis.ngram.NGramTokenFilter;
-import org.apache.lucene.analysis.ngram.NGramTokenizer;
 import org.apache.lucene.analysis.snowball.SnowballFilter;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
-import org.apache.lucene.analysis.synonym.SynonymFilter;
-import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
-import org.apache.lucene.analysis.synonym.SynonymMap;
-import org.apache.lucene.analysis.synonym.WordnetSynonymParser;
-import org.apache.lucene.util.CharsRef;
 
 public class MyAnalyzer extends Analyzer {
 	private List<String> stopWords;
