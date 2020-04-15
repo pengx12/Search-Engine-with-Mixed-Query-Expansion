@@ -1,6 +1,7 @@
 package com.test.lucene;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.search.similarities.BM25Similarity;
 import org.apache.lucene.search.similarities.Similarity;
 
 /**
@@ -14,9 +15,9 @@ public class AnalAndSim {
         //Analyzer analyzer = new StandardAnalyzer();
         analyzer = new MyAnalyzer();
 
-        // similarity=new BM25Similarity();
+        similarity=new BM25Similarity();
         // similarity=new ClassicSimilarity();
-        similarity=IRUtils.getSimilarity();
+        // similarity=IRUtils.getSimilarity();
         /*
              * Map<String, Analyzer> map = new HashMap<>(); map.put("Abstract", new
              * myAnalyzer(myStopSet));

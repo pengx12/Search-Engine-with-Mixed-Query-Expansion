@@ -66,11 +66,9 @@ public class IndexSearch {
     public static ArrayList<QueryResult> querysearch(IndexSearcher searcher, Analyzer analyzer,
             DirectoryReader directoryReader) {
         Map<String, Float> bstparameter = new HashMap<String, Float>();
-        bstparameter.put("title", 5f);
-        bstparameter.put("text", 10f);
+        bstparameter.put("title", 1f);
+        bstparameter.put("text", 12f);
         QueryParser parser = new MultiFieldQueryParser(QUREY_FIELDS, analyzer, bstparameter);
-        // QueryParser parser = new MultiFieldQueryParser(QUREY_FIELDS , analyzer);
-        // QueryParser parser = new QueryParser("content", analyzer);
         int counter = 1;
         final ArrayList<QueryResult> allResults = new ArrayList<QueryResult>();
         ArrayList<ArrayList<String>> qryarr;
@@ -146,17 +144,20 @@ public class IndexSearch {
         }  
         ExpandQuery eq=new ExpandQuery();
 		try {
-            List<ScorePair> eqarr = eq.expandQtfidf(searcher, directoryReader, query);
+            BooleanQuery.Builder tmpq = query;
+            // BooleanQuery.Builder tmpq = getquery1(parser, qryarr, j, symparser);
+            List<ScorePair> eqarr = eq.expandQtfidf(searcher, directoryReader, tmpq);
             for (int i = 0; i < eqarr.size(); i++) {
                 ScorePair pair = eqarr.get(i);
                 if (pair.docString.length()<3){
                     continue;
                 }
+
                 Query eQuery = parser.parse(QueryParser.escape(pair.docString));
                 query.add(new BoostQuery(eQuery, (float) pair.score), BooleanClause.Occur.SHOULD);
 
 
-                eqarr = eq.expandQ(searcher, directoryReader, query);
+                eqarr = eq.expandQ(searcher, directoryReader, tmpq);
                 for ( i = 0; i < eqarr.size(); i++) {
                      pair = eqarr.get(i);
                     if (pair.docString.length()<3){
@@ -175,7 +176,32 @@ public class IndexSearch {
     }
 
 
-
-
-
+    private static BooleanQuery.Builder getquery1(QueryParserBase parser, ArrayList<ArrayList<String>> qryarr, int j,
+    QueryParser symparser)
+    throws ParseException {
+        Query titlequery = parser.parse(QueryParser.escape(qryarr.get(j).get(0)));
+        Query descquery = parser.parse(QueryParser.escape(qryarr.get(j).get(1)));
+        Query relquery=null;
+        if (qryarr.get(j).get(2)!=null && qryarr.get(j).get(2).length()!=0)
+        {
+            relquery = parser.parse(QueryParser.escape(qryarr.get(j).get(2)));
+        }
+        Query mustquery=null;
+        if (qryarr.get(j).get(4)!=null && qryarr.get(j).get(4).length()!=0)
+        {
+            mustquery = parser.parse(QueryParser.escape(qryarr.get(j).get(4)));
+        }
+        BooleanQuery.Builder query = new BooleanQuery.Builder();
+        query.add(new BoostQuery(titlequery, 10f), BooleanClause.Occur.SHOULD);
+        query.add(new BoostQuery(descquery, 2.5f), BooleanClause.Occur.SHOULD);
+        if (relquery!=null)
+        {
+            query.add(new BoostQuery(relquery, 0.5f), BooleanClause.Occur.SHOULD);
+        }
+        if (mustquery!=null)
+        {
+            query.add(new BoostQuery(mustquery, 10f), BooleanClause.Occur.MUST);
+        }
+        return query;
+    }
 }

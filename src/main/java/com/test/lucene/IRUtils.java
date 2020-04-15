@@ -43,7 +43,7 @@ public class IRUtils {
     public final static String absPathFB = String.format("%s/Docs/fbis", currentRelativePath);
     public final static String absPathLA = String.format("%s/Docs/latimes", currentRelativePath);
     public final static String absPathFT = String.format("%s/Docs/ft", currentRelativePath);
-    public final static String absPathpro = String.format("%s/prolog/wn_s.pl", currentRelativePath);
+    public final static String absPathpro = String.format("%s/Docs/wn_s.pl", currentRelativePath);
     public final static String absPathstop = String.format("%s/Docs/stopWords", currentRelativePath);
     public final static String absPathcountry = String.format("%s/Docs/countries.txt", currentRelativePath);
 
@@ -63,7 +63,8 @@ public class IRUtils {
 
     public static ArrayList<Document> loadFedRegisterDocs(String pathToFedRegister, String id, String setitle,
             String setext) throws IOException {
-
+        //clear all the content last index added
+        DocList.clear();
         File path = new File(pathToFedRegister);
         File[] directories = path.listFiles(File::isDirectory);
         String docno, text, title;
@@ -104,9 +105,6 @@ public class IRUtils {
 		myFType.setStoreTermVectors(true);
 		doc.add(new Field("text", text, myFType));
 		doc.add(new Field("title", title, myFType));
-        // doc.add(new TextField("text", text, Field.Store.YES));
-        // doc.add(new TextField("title", title, Field.Store.YES));
-        // fedRegisterDocList.add(doc);
         return doc;
     }
 

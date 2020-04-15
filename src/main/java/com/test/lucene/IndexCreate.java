@@ -50,6 +50,7 @@ public class IndexCreate {
         // indexWriterConfig.setOpenMode(OpenMode.CREATE);
         indexWriterConfig.setOpenMode(OpenMode.CREATE_OR_APPEND);
         indexWriterConfig.setSimilarity(anals.getSimilarity());
+        
         Directory directory = null;
         IndexWriter indexWriter = null;
         try {
